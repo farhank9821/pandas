@@ -1,0 +1,551 @@
+*************************** 1 Linear Regression *******************************************
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+data = pd.read_csv("Salary_Data.csv")
+data
+
+data.info()
+data.describe
+
+
+X = data[['YearsExperience']]
+X
+y = data['Salary']
+y
+
+print(X.shape)
+print(y.shape)
+
+model = LinearRegression()
+model.fit(X, y)
+
+predicted_y = model.predict(X)
+
+plt.scatter(X, y, color='blue', label='Data')
+
+plt.plot(X, predicted_y, color='red', label='Linear Regression')
+
+plt.xlabel('Years of Experience')
+plt.ylabel('Salary')
+plt.title('Linear Regression')
+plt.legend()
+
+
+plt.show()
+
+****************************** 2 Multiple Regression  ********************************************
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+
+data = pd.read_csv('advertising.csv')
+
+
+X = data[['TV', 'Radio', 'Newspaper']]
+y = data['Sales']
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+
+y_pred_train = model.predict(X_train)
+y_pred_test = model.predict(X_test)
+
+
+print("Coefficients:", model.coef_)
+
+
+print("Mean Squared Error (Train):", mean_squared_error(y_train, y_pred_train))
+print("Mean Squared Error (Test):", mean_squared_error(y_test, y_pred_test))
+
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+for i, feature in enumerate(X.columns):
+    axes[i].scatter(X[feature], y, color='blue')
+    axes[i].plot(X[feature], model.coef_[i]*X[feature] + model.intercept_, '-r')
+    axes[i].set_xlabel(feature)
+    axes[i].set_ylabel('Sales')
+
+plt.tight_layout()
+plt.show()
+
+******************************  3Logistic Regression  ********************************************
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+import pandas as pd
+import seaborn as sns
+
+
+penguins = sns.load_dataset('penguins')
+penguins
+
+
+penguins.dropna(inplace=True)
+penguins
+
+
+penguins.replace("Male", 0, inplace=True)
+penguins.replace("Female", 1, inplace=True)
+penguins
+
+
+X = penguins[['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']]
+Y = penguins['sex']
+X, Y
+
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, random_state=42, test_size=0.1)
+
+
+X_train, Y_train
+
+
+X_test, Y_test
+
+
+from sklearn.linear_model import LogisticRegression
+lr_model = LogisticRegression()
+
+
+lr_model.fit(X_train, Y_train)
+
+Y_pred = lr_model.predict(X_test)
+
+
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, roc_auc_score
+
+cnf_matrix = confusion_matrix(Y_test, Y_pred)
+cnf_matrix
+
+
+sns.heatmap(pd.DataFrame(cnf_matrix), annot=True, cmap="YlGnBu", xticklabels=["Male", "Female"], yticklabels=["Male", "Female"])
+plt.xlabel("Predicted class")
+plt.ylabel("Actual class")
+plt.show();
+
+
+print(classification_report(Y_test, Y_pred, target_names=["Male", "Female"]))
+
+
+Y_pred_proba = lr_model.predict_proba(X_test)[::, 1]
+fpr, tpr, _ = roc_curve(Y_test, Y_pred_proba)
+auc = roc_auc_score(Y_test, Y_pred_proba)
+plt.plot(fpr, tpr, label=f"R2 score: {auc}")
+plt.show();
+
+****************************** 4,5 Time Series/ARIMA model (R)  ********************************************
+
+install.packages('forecast')
+
+library(forecast) 
+
+data("AirPassengers") 
+AirPassengers
+summary(AirPassengers)
+
+plot (AirPassengers)
+
+ts_data <- ts(AirPassengers, frequency=12) 
+decomp_data <- decompose(AirPassengers, "multiplicative") 
+plot(decomp_data) 
+
+
+plot(decomp_data$seasonal)
+plot(decomp_data$trend)
+plot(decomp_data$random)
+
+
+plot(AirPassengers)
+regression_model <- lm(AirPassengers ~ time(AirPassengers))
+abline(regression_model)
+
+
+
+arima_model <- auto.arima (AirPassengers)
+arima_model
+
+plot.ts(arima_model$residuals) 
+
+plot(forecast(arima_model, level=c(95), h=10*12)) 
+
+****************************** 6 Spam/ham  ********************************************
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score
+
+
+data = pd.read_csv('spam_ham_dataset.csv')
+
+
+data = data[['text', 'label']]  
+
+
+X_train, X_test, y_train, y_test = train_test_split(data['text'], data['label'], test_size=0.2, random_state=42)
+
+
+vectorizer = TfidfVectorizer(stop_words='english')
+X_train_vectorized = vectorizer.fit_transform(X_train)
+X_test_vectorized = vectorizer.transform(X_test)
+
+
+classifier = MultinomialNB()
+classifier.fit(X_train_vectorized, y_train)
+
+
+y_pred = classifier.predict(X_test_vectorized)
+
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+
+
+example_text = ["You've been selected as the lucky winner of our exclusive vacation giveaway! You and a companion are entitled to a luxurious 5-star hotel stay in an exotic location of your choice. Simply click the link below to claim your prize and book your dream vacation now!"]
+example_text_vectorized = vectorizer.transform(example_text)
+prediction = classifier.predict(example_text_vectorized)
+if prediction[0] != 'spam':
+    print("The message is classified as spam.")
+else:
+    print("The message is classified as not spam (ham).")
+
+
+****************************** 7 Word cloud  ********************************************
+
+import pandas as pd
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+data = pd.read_csv("wordcloud.csv")  
+
+
+text = ' '.join(data['blurb'])  
+
+
+words = text.split()
+
+
+word_freq = {}
+for word in words:
+    word = word.lower()  
+    if word not in word_freq:
+        word_freq[word] = 0
+    word_freq[word] += 1
+
+wordcloud = WordCloud(width=800, height=400, background_color ='white').generate_from_frequencies(word_freq)
+
+
+plt.figure(figsize=(10, 5))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')
+plt.show()
+
+
+******************************  8 Sentiment analysis  ********************************************
+
+pip install nltk
+
+import nltk
+nltk.download('vader_lexicon')
+
+
+import pandas as pd
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+# Load the dataset into a pandas DataFrame
+data = {
+    'Text': ["Enjoying a beautiful day at the park!", "Traffic was terrible this morning.",
+             "Just finished an amazing workout! ðŸ’ª", "Excited about the upcoming weekend getaway!",
+             "Trying out a new recipe for dinner tonight.", "Feeling grateful for the little things in life.",
+             "Rainy days call for cozy blankets and hot cocoa.", "The new movie release is a must-watch!",
+             "Political discussions heating up on the timeline.", "Missing summer vibes and beach days."],
+    'Sentiment': ["Positive", "Negative", "Positive", "Positive", "Neutral", "Positive",
+                  "Positive", "Positive", "Negative", "Neutral"]
+}
+
+df = pd.DataFrame(data)
+
+# Initialize the VADER sentiment analyzer
+sid = SentimentIntensityAnalyzer()
+
+# Perform sentiment analysis for each text in the dataset
+sentiments = []
+for text in df['Text']:
+    sentiment_scores = sid.polarity_scores(text)
+    if sentiment_scores['compound'] >= 0.05:
+        sentiments.append('Positive')
+    elif sentiment_scores['compound'] <= -0.05:
+        sentiments.append('Negative')
+    else:
+        sentiments.append('Neutral')
+
+# Compare the predicted sentiments with the actual sentiments
+df['Predicted Sentiment'] = sentiments
+
+# Print the DataFrame with actual and predicted sentiments
+print(df)
+
+******************************  9 EDA of a given dataset (python) ********************************************
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Step 1: Load the dataset
+iris_df = pd.read_csv('https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv')
+
+# Step 2: Explore the dataset
+print("First few rows of the dataset:")
+print(iris_df.head())
+
+print("\nInformation about the dataset:")
+print(iris_df.info())
+
+print("\nSummary statistics of numerical columns:")
+print(iris_df.describe())
+
+# Step 3: Handle missing values (if any) - Not required for Iris dataset as it's a clean dataset
+
+# Step 4: Visualize distributions of numerical variables
+# Histograms
+iris_df.hist(figsize=(10, 8))
+plt.show()
+
+# Box plots
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=iris_df)
+plt.show()
+
+# Step 5: Visualize relationships between variables
+# Scatter plot
+sns.pairplot(iris_df, hue='species')
+plt.show()
+
+# Correlation matrix
+# correlation_matrix = iris_df.corr()
+# sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+# plt.title('Correlation Matrix')
+# plt.show()
+
+# Step 6: Explore categorical variables (if any) - Not required for Iris dataset
+
+# Step 7: Feature engineering - Not required for this demonstration
+
+# Step 8: Summarize findings
+# Example: Mean sepal length for each species
+print("\nMean sepal length for each species:")
+print(iris_df.groupby('species')['sepal_length'].mean())
+
+
+****************************** 10 EDA of a given dataset (R) ********************************************
+
+# Load the iris dataset
+data(iris)
+
+# Display the first few rows of the dataset
+print("First few rows of the dataset:")
+head(iris)
+
+# Basic statistics of the dataset
+print("Basic statistics of the dataset:")
+summary(iris)
+
+# Visualize the distribution of numeric features using histograms
+par(mfrow=c(2, 2))
+for (i in 1:4) {
+  hist(iris[, i], main=names(iris)[i])
+}
+
+# Visualize the relationship between numeric features using scatter plots
+pairs(iris[, 1:4], main="Pairwise Scatterplot")
+
+# Visualize the relationship between numeric features and the target variable using boxplots
+par(mfrow=c(1, 1))
+boxplot(Sepal.Length ~ Species, data=iris, main="Boxplot of Sepal Length by Species")
+
+# Compute the correlation matrix
+correlation_matrix <- cor(iris[, 1:4])
+
+# Plot the correlation matrix as a heatmap
+heatmap(correlation_matrix,
+        col = colorRampPalette(c("blue", "white", "red"))(100),
+        symm = TRUE,
+        margins = c(5, 10),
+        main = "Correlation Heatmap of Iris Dataset"
+)
+
+
+
+
+****************************** 11 Analytics and visualization using R  ********************************************
+
+data <- data.frame(
+age = c(17, 22, 26, 19, 20),
+gender = c("Male", "Male", "Female", "Male", "Female"),
+height = c(1.97, 1.88, 1.67, 1.75, 1.72)
+)
+
+head(data)
+
+
+
+# Histogram
+hist(data$age, main="Age distribution", xlab="Age")
+
+
+# Scatter plot
+plot(data$age, data$height, main="Age vs Height", xlab="Age", ylab="Height")
+
+
+
+# Bar plot
+barplot(table(data$gender), main="Gender distribution", xlab="Gender", ylab="Frequency")
+
+
+# Boxplot
+boxplot(data$height, main="Height boxplot", ylab="Height")
+
+
+# Time series
+x <- c(11, 13, 26, 9, 7, 44, 66, 22, 44, 33, 99, 45, 76, 49, 57, 88, 40, 76, 81, 12, 16, 32) # Random series
+
+x_ts <- ts(x, start=1, frequency=1) # Convert to time series
+plot(x_ts, main="Time Series", xlab="Time", ylab="Frequency")
+
+
+
+# Pie chart data
+pie_data <- c(210, 450, 250, 100, 50, 90)
+names(pie_data) <- c("A", "B", "C", "D", "E")
+pie(pie_data, labels=names(pie_data), main="Pie chart")
+
+
+# Line graph
+line_data <- c(17, 25, 38, 13, 41)
+plot(line_data, type="o", ylab="Frequency", main="Line Graph")
+
+
+
+# Heatmap
+heatmap_data <- data.frame(
+A = c(1, 7, 3, 2, 5),
+B = c(1, 7, 2, 0, 10),
+C = c(12, 7, 9, 2, 5),
+D = c(10, 10, 1, 1, 0)
+)
+
+heatmap(as.matrix(heatmap_data))
+
+
+****************************** 12 Analytics and visualization using python  ********************************************
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import datetime
+
+# Generate a dummy dataset
+np.random.seed(42)  # Set random seed for reproducibility
+data = pd.DataFrame({
+    'A': np.random.rand(100),
+    'B': np.random.rand(100),
+    'C': np.random.rand(100),
+    'Category': np.random.choice(['X', 'Y', 'Z'], 100)
+})
+
+# Display it
+data.head()
+
+# Scatter plot
+plt.figure(figsize=(8, 6))
+plt.scatter(data['A'], data['B'])
+plt.title('Scatter plot')
+plt.xlabel('A')
+plt.ylabel('B')
+plt.show();
+
+# Line plot
+plt.figure(figsize=(8, 6))
+plt.plot(data['A'], data['B'])
+plt.title('Line plot')
+plt.xlabel('A')
+plt.ylabel('B')
+plt.show();
+
+# Bar graph
+plt.bar(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"], data['B'][:10])
+plt.title("Bar graph")
+plt.xlabel("Labels")
+plt.ylabel("Frequency")
+plt.show();
+
+# Histogram
+plt.figure(figsize=(8, 6))
+plt.hist(data['C'], bins=20)
+plt.title('Histogram')
+plt.xlabel('C')
+plt.ylabel('Frequency')
+plt.show();
+
+# Box plot
+plt.figure(figsize=(8, 6))
+data.boxplot(column=['A', 'B', 'C'])
+plt.title('Box plot')
+plt.ylabel('Values')
+plt.show();
+
+# Pie chart
+pie_data = [10, 57, 54, 66, 90, 12, 54]
+pie_labels = ["A", "B", "C", "D", "E", "F", "G"]
+plt.pie(pie_data, labels=pie_labels)
+plt.title("Pie chart")
+plt.show();
+
+# Time Series Analysis
+df = pd.DataFrame({'date': np.array([datetime.datetime(2024, 4, i + 1) for i in range(10, 20)]),
+                   'frequency': [10, 20, 15, 17, 23, 13, 22, 29, 10, 14]})
+plt.figure(figsize=(8, 6))
+plt.plot(df.date, df.frequency)
+plt.title("Time Series")
+plt.xticks(rotation=45, ha="right")
+plt.xlabel("Date")
+plt.ylabel("Frequency")
+plt.show();
+
+# Heatmap visualisation
+# Compute the correlation matrix
+# corr_matrix = data.corr()
+data['Category'] = data['Category'].astype('category').cat.codes
+corr_matrix = data.corr()
+
+# Generate a mask for the upper triangle
+mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+
+# Set up the matplotlib figure
+plt.figure(figsize=(8, 6))
+
+# Draw the heatmap with the mask and correct aspect ratio
+sns.heatmap(corr_matrix, mask=mask, cmap='coolwarm', annot=True, fmt=".2f")
+
+plt.title('Correlation Heatmap')
+plt.show()
+
+
+
